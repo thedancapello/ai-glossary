@@ -93,13 +93,13 @@ try {
     { status: 500 }
   );
 }
-const canonical_name = exists
-  ? String(existing.data.canonical_name).trim()
+const canonical_name = exists && existing.data
+  ? String(existing.data.canonical_name ?? term).trim()
   : String(data.canonical_name ?? term).trim();
 const summary = String(data.summary ?? "").trim();
 const category_primary = coerceCategory(data.category_primary ?? "");
     const definition_md = String(data.definition_md ?? "").trim();
-let finalTerm = existing.data ?? null;
+let finalTerm = existing?.data ?? null;
 
 if (!exists) {
   // 3) Insert term
