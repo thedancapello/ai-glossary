@@ -126,7 +126,7 @@ if (!exists) {
     const insertedVersion = await supabaseAdmin
       .from("term_versions")
       .insert({
-        term_id: finalTerm.id,
+        term_id: finalTerm!.id,
         editor_user_id: user_id ?? null,
         definition_md,
         summary,
