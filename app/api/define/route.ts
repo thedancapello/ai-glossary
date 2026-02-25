@@ -148,7 +148,7 @@ if (!exists) {
         summary,
         category_primary,
       })
-      .eq("id", finalTerm.id)
+      .eq("id", finalTerm!.id)
       .select()
       .single();
 
