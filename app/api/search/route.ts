@@ -7,12 +7,15 @@ const openai = new OpenAI({
 
 export async function GET(req: Request) {
   try {
-    const { query } = await req.json();
+const { searchParams } = new URL(req.url);
+const query = searchParams.get("q");
 
-    if (!query) {
-      return NextResponse.json({ error: "Missing query" }, { status: 400 });
-    }
-
+if (!query || query.trim().length < 2) {
+  return NextResponse.json(
+    { error: "Query must be at least 2 characters" },
+    { status: 400 }
+  );
+}
     // 1️⃣ Embed the query
     const embeddingResponse = await openai.embeddings.create({
       model: "text-embedding-3-small",
