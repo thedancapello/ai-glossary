@@ -107,14 +107,15 @@ const canonical_name = exists && existing.data
   : String(data.canonical_name ?? term).trim();
 const summary = String(data.summary ?? "").trim();
 // Generate embedding for semantic search
+const category_primary = coerceCategory(data.category_primary ?? "");
+    const definition_md = String(data.definition_md ?? "").trim();
+// Generate embedding for semantic search
 const embeddingResponse = await openai.embeddings.create({
   model: "text-embedding-3-small",
   input: `${canonical_name}\n\n${definition_md}`,
 });
 
 const embedding = embeddingResponse.data[0].embedding;
-const category_primary = coerceCategory(data.category_primary ?? "");
-    const definition_md = String(data.definition_md ?? "").trim();
 let finalTerm = existing?.data ?? null;
 
 if (!exists) {
