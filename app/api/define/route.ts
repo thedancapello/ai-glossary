@@ -62,7 +62,6 @@ const term_id = existing.data?.id ?? null;
 // 2) Call OpenAI (Structured JSON Mode - SDK Safe)
 const resp = await openai.responses.create({
   model: "gpt-5.2",
-  response_format: { type: "json_object" },
   input: [
     {
       role: "system",
