@@ -231,7 +231,7 @@ if (linkedCompanies.error) {
   );
 }
 
-const companies =
+const linkedCompanyRecords =
   linkedCompanies.data?.map((row: any) => row.company) ?? [];
 
 return Response.json({
@@ -239,7 +239,7 @@ return Response.json({
   exists,
   term: updatedTerm.data,
   version: insertedVersion.data,
-  companies,
+  companies: linkedCompanyRecords,
 });
   } catch (err: any) {
     console.error("DEFINE route FULL ERROR:", err);
