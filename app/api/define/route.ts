@@ -201,7 +201,7 @@ for (const company of companies) {
     .from("term_companies")
     .upsert(
       {
-        term_id: finalTerm.id,
+        term_id: finalTerm!.id,
         company_id: upsertedCompany.id,
       },
       { onConflict: "term_id,company_id" }
