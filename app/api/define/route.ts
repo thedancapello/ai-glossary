@@ -103,7 +103,6 @@ Use inference where appropriate.
 });
 
 const data = JSON.parse(resp.output_text || "{}");
-const data = resp.output_parsed;
 const canonical_name = exists && existing.data
   ? String(existing.data.canonical_name ?? term).trim()
   : String(data.canonical_name ?? term).trim();
