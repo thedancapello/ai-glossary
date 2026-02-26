@@ -29,7 +29,7 @@ if (!query || query.trim().length < 2) {
       "match_terms",
       {
         query_embedding: embedding,
-        match_threshold: 0.75,
+        match_threshold: 0.0,
         match_count: 5,
       }
     );
