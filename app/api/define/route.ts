@@ -165,6 +165,48 @@ if (!exists) {
       console.error("Supabase update term error:", updatedTerm.error);
       return Response.json({ error: updatedTerm.error.message }, { status: 500 });
     }
+// 5) Upsert companies and link to term
+const companies = data.companies || [];
+
+for (const company of companies) {
+  if (!company?.name) continue;
+
+  const normalizedCompany = company.name.trim().toLowerCase();
+
+  // Upsert company
+  const { data: upsertedCompany, error: companyError } =
+    await supabaseAdmin
+      .from("companies")
+      .upsert(
+        {
+          name: company.name.trim(),
+          normalized_name: normalizedCompany,
+          public: company.public ?? null,
+          revenue_estimate: company.revenue_estimate ?? null,
+          funding_raised: company.funding_raised ?? null,
+          description: company.description ?? null,
+        },
+        { onConflict: "normalized_name" }
+      )
+      .select()
+      .single();
+
+  if (companyError) {
+    console.error("Company upsert error:", companyError);
+    continue;
+  }
+
+  // Link term ↔ company
+  await supabaseAdmin
+    .from("term_companies")
+    .upsert(
+      {
+        term_id: finalTerm.id,
+        company_id: upsertedCompany.id,
+      },
+      { onConflict: "term_id,company_id" }
+    );
+}
 
     return Response.json({
       ok: true,
