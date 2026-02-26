@@ -1,40 +1,46 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-export const runtime = "nodejs";
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const query = searchParams.get("q");
+    const { query } = await req.json();
 
-    if (!query || query.trim().length < 2) {
-      return Response.json(
-        { error: "Query must be at least 2 characters" },
-        { status: 400 }
-      );
+    if (!query) {
+      return NextResponse.json({ error: "Missing query" }, { status: 400 });
     }
 
-    const { data, error } = await supabaseAdmin
-      .from("terms")
-      .select("*")
-      .or(
-        `canonical_name.ilike.%${query}%,summary.ilike.%${query}%`
-      )
-      .order("created_at", { ascending: false })
-      .limit(25);
+    // 1️⃣ Embed the query
+    const embeddingResponse = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: query,
+    });
+
+    const embedding = embeddingResponse.data[0].embedding;
+
+    // 2️⃣ Run vector similarity search
+    const { data, error } = await supabaseAdmin.rpc(
+      "match_terms",
+      {
+        query_embedding: embedding,
+        match_threshold: 0.75,
+        match_count: 5,
+      }
+    );
 
     if (error) {
-      return Response.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error }, { status: 500 });
     }
 
-    return Response.json({
-      ok: true,
-      count: data?.length ?? 0,
-      results: data ?? [],
-    });
+    return NextResponse.json({ results: data });
+
   } catch (err: any) {
-    return Response.json(
-      { error: err?.message ?? "Search failed" },
+    return NextResponse.json(
+      { error: err.message ?? "Search failed" },
       { status: 500 }
     );
   }
