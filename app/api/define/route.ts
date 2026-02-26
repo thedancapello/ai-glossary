@@ -133,12 +133,6 @@ Constraints:
 });
 
 const data = resp.output_parsed;
-  console.error("Failed to parse JSON:", cleaned);
-  return Response.json(
-    { error: "Model did not return valid JSON", raw: cleaned },
-    { status: 500 }
-  );
-}
 const canonical_name = exists && existing.data
   ? String(existing.data.canonical_name ?? term).trim()
   : String(data.canonical_name ?? term).trim();
