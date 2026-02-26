@@ -59,79 +59,50 @@ export async function POST(req: Request) {
 const exists = !!existing.data;
 const term_id = existing.data?.id ?? null;
 
-// 2) Call OpenAI (Structured Schema Mode)
+// 2) Call OpenAI (Structured JSON Mode - SDK Safe)
 const resp = await openai.responses.create({
   model: "gpt-5.2",
-  response_format: {
-    type: "json_schema",
-    json_schema: {
-      name: "term_definition",
-      schema: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          term: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              canonical_name: { type: "string" },
-              category_primary: { type: "string" },
-              summary: { type: "string" },
-              definition_md: { type: "string" },
-              strategic_importance: { type: "string" }
-            },
-            required: [
-              "canonical_name",
-              "category_primary",
-              "summary",
-              "definition_md",
-              "strategic_importance"
-            ]
-          },
-          companies: {
-            type: "array",
-            items: {
-              type: "object",
-              additionalProperties: false,
-              properties: {
-                name: { type: "string" },
-                public: { type: ["boolean", "null"] },
-                revenue_estimate: { type: ["number", "null"] },
-                funding_raised: { type: ["number", "null"] },
-                description: { type: "string" }
-              },
-              required: ["name"]
-            }
-          }
-        },
-        required: ["term", "companies"]
-      }
-    }
-  },
+  response_format: { type: "json_object" },
   input: [
     {
       role: "system",
-      content: "You are a senior AI industry analyst producing operator-grade strategic intelligence."
+      content:
+        "You are a senior AI industry analyst producing operator-grade strategic intelligence."
     },
     {
       role: "user",
       content: `
 Define the AI ecosystem term: "${term}"
 
-Constraints:
-- Maximum 750 words in definition_md
-- Include clear technical explanation
-- Include strategic importance and ecosystem positioning
-- Include commercial landscape
-- Use inference where appropriate
-- Extract major companies involved (if any)
-- If no relevant companies exist, return an empty companies array
-- Return structured JSON only
+Return a JSON object with this exact structure:
+
+{
+  "term": {
+    "canonical_name": string,
+    "category_primary": string,
+    "summary": string,
+    "definition_md": string (max 750 words),
+    "strategic_importance": string
+  },
+  "companies": [
+    {
+      "name": string,
+      "public": boolean | null,
+      "revenue_estimate": number | null,
+      "funding_raised": number | null,
+      "description": string
+    }
+  ]
+}
+
+If no companies apply, return an empty array.
+Use inference where appropriate.
 `
     }
   ]
 });
 
+const data = JSON.parse(resp.output_text || "{}");
 const data = resp.output_parsed;
 const canonical_name = exists && existing.data
   ? String(existing.data.canonical_name ?? term).trim()
