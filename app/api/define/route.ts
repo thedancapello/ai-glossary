@@ -208,12 +208,39 @@ for (const company of companies) {
     );
 }
 
-    return Response.json({
-      ok: true,
-      exists,
-      term: updatedTerm.data,
-      version: insertedVersion.data,
-    });
+// 6) Fetch linked companies
+const linkedCompanies = await supabaseAdmin
+  .from("term_companies")
+  .select(`
+    company:companies (
+      id,
+      name,
+      normalized_name,
+      public,
+      revenue_estimate,
+      funding_total
+    )
+  `)
+  .eq("term_id", finalTerm!.id);
+
+if (linkedCompanies.error) {
+  console.error("Error fetching linked companies:", linkedCompanies.error);
+  return Response.json(
+    { error: linkedCompanies.error.message },
+    { status: 500 }
+  );
+}
+
+const companies =
+  linkedCompanies.data?.map((row: any) => row.company) ?? [];
+
+return Response.json({
+  ok: true,
+  exists,
+  term: updatedTerm.data,
+  version: insertedVersion.data,
+  companies,
+});
   } catch (err: any) {
     console.error("DEFINE route FULL ERROR:", err);
     return Response.json(
