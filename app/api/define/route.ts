@@ -106,6 +106,13 @@ const canonical_name = exists && existing.data
   ? String(existing.data.canonical_name ?? term).trim()
   : String(data.canonical_name ?? term).trim();
 const summary = String(data.summary ?? "").trim();
+// Generate embedding for semantic search
+const embeddingResponse = await openai.embeddings.create({
+  model: "text-embedding-3-small",
+  input: `${canonical_name}\n\n${definition_md}`,
+});
+
+const embedding = embeddingResponse.data[0].embedding;
 const category_primary = coerceCategory(data.category_primary ?? "");
     const definition_md = String(data.definition_md ?? "").trim();
 let finalTerm = existing?.data ?? null;
@@ -119,7 +126,8 @@ if (!exists) {
       normalized_name,
       summary,
       category_primary,
-      created_by: user_id ?? null,
+      embedding,
+created_by: user_id ?? null,
     })
     .select()
     .single();
@@ -152,11 +160,12 @@ if (!exists) {
     // 5) Update current_version_id + sync summary/category
     const updatedTerm = await supabaseAdmin
       .from("terms")
-      .update({
-        current_version_id: insertedVersion.data.id,
-        summary,
-        category_primary,
-      })
+.update({
+  current_version_id: insertedVersion.data.id,
+  summary,
+  category_primary,
+  embedding,
+})
       .eq("id", finalTerm!.id)
       .select()
       .single();
