@@ -35,7 +35,19 @@ if (!query || query.trim().length < 2) {
     );
 
     if (error) {
-      return NextResponse.json({ error }, { status: 500 });
+const enhancedResults = data.map((item: any) => {
+  let confidence = "low";
+
+  if (item.similarity > 0.85) confidence = "high";
+  else if (item.similarity > 0.5) confidence = "medium";
+
+  return {
+    ...item,
+    confidence,
+  };
+});
+
+return NextResponse.json({ results: enhancedResults });
     }
 
     return NextResponse.json({ results: data });
