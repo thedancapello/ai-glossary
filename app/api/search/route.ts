@@ -34,7 +34,14 @@ if (!query || query.trim().length < 2) {
       }
     );
 
-    if (error) {
+if (error) {
+  return NextResponse.json({ error }, { status: 500 });
+}
+
+if (!data) {
+  return NextResponse.json({ results: [] });
+}
+
 const enhancedResults = data.map((item: any) => {
   let confidence = "low";
 
