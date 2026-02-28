@@ -20,35 +20,48 @@ export async function POST(req: Request) {
 
     const canonical_name = name.trim();
     const normalized_name = name.toLowerCase().trim();
+// 🔎 Check for duplicate
+const { data: existing } = await supabaseAdmin
+  .from("companies")
+  .select("*")
+  .eq("normalized_name", normalized_name)
+  .maybeSingle();
 
-    // 🔥 Generate embedding
-    const embeddingResponse = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: `${canonical_name}. ${description || ""}`,
-    });
+if (existing) {
+  return NextResponse.json({
+    success: true,
+    message: "Company already exists",
+    company: existing,
+  });
+}
+// 🔥 Generate embedding
+const embeddingResponse = await openai.embeddings.create({
+  model: "text-embedding-3-small",
+  input: `${canonical_name}. ${description || ""}`,
+});
 
-    const embedding = embeddingResponse.data[0].embedding;
+const embedding = embeddingResponse.data[0].embedding;
 
-    // 🚀 Insert into Supabase
-    const { data, error } = await supabaseAdmin
-      .from("companies")
-      .insert({
-        name: canonical_name,
-        canonical_name,
-        normalized_name,
-        website,
-        industry,
-        description,
-        embedding,
-      })
-      .select()
-      .single();
+// 🚀 Insert into Supabase
+const { data, error } = await supabaseAdmin
+  .from("companies")
+  .insert({
+    name: canonical_name,
+    canonical_name,
+    normalized_name,
+    website,
+    industry,
+    description,
+    embedding,
+  })
+  .select()
+  .single();
 
-    if (error) {
-      return NextResponse.json({ error }, { status: 500 });
-    }
+if (error) {
+  return NextResponse.json({ error }, { status: 500 });
+}
 
-    return NextResponse.json({ company: data });
+return NextResponse.json({ success: true, company: data });
 
   } catch (err: any) {
     return NextResponse.json(
