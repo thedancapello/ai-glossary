@@ -6,7 +6,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function POST() {
+export async function GET() {
   try {
     const { data: companies, error } = await supabaseAdmin
       .from("companies")
