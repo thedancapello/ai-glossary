@@ -189,3 +189,27 @@ Infrastructure wiring
 To:
 
 Feature expansion + UX polish
+---
+
+## 2026-02-28 – Production Hardening Complete
+
+### Completed Today
+- Added duplicate detection to company create endpoint (normalized_name check)
+- Enforced idempotent company creation
+- Added company update endpoint with automatic re-embedding
+- Confirmed embedding storage and similarity search in production
+- Validated full create → embed → search flow via browser testing
+
+### Architecture Status
+- Companies are first-class semantic entities
+- Embeddings auto-generated on create/update
+- Vector search returns ranked + confidence-scored results
+- Canonical and normalized name enforcement active
+- Production deployment stable on Vercel
+
+### Planned (Next Iteration)
+- Bulk ingestion endpoint (batch company inserts)
+- Background queue-based embedding pipeline
+- API key protection for create/update routes
+- Admin UI for company management
+- Automatic term ↔ company relationship linking
